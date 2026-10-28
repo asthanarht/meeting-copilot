@@ -1,0 +1,17 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net10.0-windows</TargetFramework>
+    <UseWPF>true</UseWPF>
+    <RuntimeIdentifiers>win-arm64;win-x64</RuntimeIdentifiers>
+    <ApplicationIcon>Assets\MeetingCopilot.ico</ApplicationIcon>
+  </PropertyGroup>
+  <ItemGroup>
+    <Resource Include="Assets\MeetingCopilot.ico" />
+    <Resource Include="Assets\MeetingCopilot.png" />
+    <InternalsVisibleTo Include="MeetingCopilot.Tests" />
+    <ProjectReference Include="..\MeetingCopilot.Core\MeetingCopilot.Core.csproj" />
+    <PackageReference Include="Microsoft.CognitiveServices.Speech" Version="1.46.0" />
+    <PackageReference Include="NAudio" Version="2.2.1" />
+  </ItemGroup>
+</Project>

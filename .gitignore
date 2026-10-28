@@ -1,0 +1,21 @@
+**/bin/
+**/obj/
+.vs/
+TestResults/
+artifacts/
+*.user
+*.secrets.json
+
+# Credentials and user data, including encrypted local configuration.
+.env
+.env.*
+!.env.example
+settings.json
+appsettings.*.local.json
+scripts.json
+*.key
+*.pem
+*.pfx
+*.p12
+*.log
+.copilot/

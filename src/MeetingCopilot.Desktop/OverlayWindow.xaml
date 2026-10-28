@@ -1,0 +1,171 @@
+<Window x:Class="MeetingCopilot.Desktop.OverlayWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:local="clr-namespace:MeetingCopilot.Desktop"
+        Style="{StaticResource CopilotWindowStyle}"
+        Title="Meeting copilot" Width="660" Height="860" MinWidth="520" MinHeight="500"
+        Topmost="True" ShowActivated="False" ResizeMode="CanResizeWithGrip"
+        WindowStartupLocation="Manual">
+    <Window.Resources>
+        <Style x:Key="ContextReader" TargetType="TextBox" BasedOn="{StaticResource {x:Type TextBox}}">
+            <Setter Property="IsReadOnly" Value="True"/>
+            <Setter Property="TextWrapping" Value="Wrap"/>
+            <Setter Property="VerticalContentAlignment" Value="Top"/>
+            <Setter Property="VerticalScrollBarVisibility" Value="Auto"/>
+            <Setter Property="HorizontalScrollBarVisibility" Value="Disabled"/>
+            <Setter Property="Background" Value="{DynamicResource Raised}"/>
+            <Setter Property="Margin" Value="0,6,0,14"/>
+        </Style>
+    </Window.Resources>
+    <DockPanel Margin="24,16,24,20">
+        <StackPanel DockPanel.Dock="Top">
+            <Grid MouseLeftButtonDown="Header_Drag" Background="Transparent" Margin="0,0,0,10">
+                <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+                <StackPanel VerticalAlignment="Center">
+                    <TextBlock Text="Meeting copilot" FontWeight="SemiBold" FontSize="17"/>
+                    <TextBlock x:Name="SessionStateText" Text="Not listening" FontSize="12" Foreground="{DynamicResource Secondary}"/>
+                </StackPanel>
+                <WrapPanel Grid.Column="1" VerticalAlignment="Center">
+                    <Button x:Name="PauseButton" Content="Pause" Click="Pause_Click" Style="{StaticResource QuietButton}"/>
+                    <Button x:Name="CompactButton" Content="Focus view" Click="Compact_Click" Style="{StaticResource QuietButton}"/>
+                    <Button Content="Stop" Click="Stop_Click" Style="{StaticResource DangerButton}" Margin="0,0,0,6"/>
+                </WrapPanel>
+            </Grid>
+            <TextBlock x:Name="CaptureProtectionStatus" Text="Capture exclusion pending."
+                       Foreground="{DynamicResource Secondary}" FontSize="12" Margin="0,0,0,12" AutomationProperties.LiveSetting="Polite"/>
+            <Border BorderBrush="{DynamicResource Stroke}" BorderThickness="0,1,0,0" Padding="0,12,0,0">
+                <StackPanel>
+                    <TextBlock x:Name="HistoryPositionText" Text="Live - no suggestions yet" FontSize="12"
+                               Foreground="{DynamicResource Secondary}" Margin="0,0,0,8"/>
+                    <WrapPanel>
+                        <Button x:Name="BrowseQuestionsButton" Content="Browse suggestions" Click="BrowseQuestions_Click"/>
+                        <Button x:Name="PreviousQuestionButton" Content="Previous" Click="PreviousQuestion_Click"
+                                Style="{StaticResource QuietButton}" IsEnabled="False"/>
+                        <Button x:Name="NextQuestionButton" Content="Next" Click="NextQuestion_Click"
+                                Style="{StaticResource QuietButton}" IsEnabled="False"/>
+                        <Button x:Name="LiveQuestionButton" Content="Live" Click="LiveQuestion_Click" Style="{StaticResource QuietButton}"/>
+                    </WrapPanel>
+                    <ListBox x:Name="QuestionHistoryList" SelectedValuePath="Id" Height="160" Visibility="Collapsed"
+                             Background="{DynamicResource Raised}" Foreground="{DynamicResource Foreground}"
+                             BorderThickness="0" Margin="0,4,0,10"
+                             ScrollViewer.HorizontalScrollBarVisibility="Disabled"
+                             SelectionChanged="QuestionHistory_SelectionChanged"
+                             AutomationProperties.Name="All suggestions in this meeting">
+                        <ListBox.ItemTemplate>
+                            <DataTemplate>
+                                <StackPanel>
+                                    <StackPanel Orientation="Horizontal" Margin="0,0,0,4">
+                                        <TextBlock Text="{Binding CreatedAt.LocalDateTime, StringFormat={}{0:t}}" FontSize="12"
+                                                   Margin="0,0,12,0"/>
+                                        <TextBlock Text="{Binding State}" FontSize="12"/>
+                                    </StackPanel>
+                                    <TextBlock Text="{Binding Cue.Text}" TextWrapping="Wrap"/>
+                                </StackPanel>
+                            </DataTemplate>
+                        </ListBox.ItemTemplate>
+                    </ListBox>
+                </StackPanel>
+            </Border>
+        </StackPanel>
+        <StackPanel DockPanel.Dock="Bottom" Margin="0,8,0,0">
+            <TextBlock x:Name="ErrorText" Foreground="{DynamicResource Danger}" Style="{StaticResource NonemptyStatus}"
+                       AutomationProperties.LiveSetting="Polite"/>
+            <TextBlock x:Name="CopyStatus" Style="{StaticResource NonemptyStatus}" FontSize="12"
+                       AutomationProperties.LiveSetting="Polite"/>
+            <TextBlock x:Name="PendingText" Foreground="{DynamicResource Accent}" Style="{StaticResource NonemptyStatus}"/>
+            <Button x:Name="ShowPendingButton" Content="Show new suggestion" Click="ShowPending_Click"
+                    Visibility="Collapsed" HorizontalAlignment="Left" Margin="0,8,0,4"/>
+            <ScrollViewer MaxHeight="66" VerticalScrollBarVisibility="Auto">
+                <TextBlock x:Name="StatusText" Text="No suggestion right now." Style="{StaticResource NonemptyStatus}"/>
+            </ScrollViewer>
+            <ScrollViewer MaxHeight="46" VerticalScrollBarVisibility="Auto">
+                <TextBlock x:Name="AnalysisText" Text="Waiting for speech to analyze." Style="{StaticResource NonemptyStatus}" FontSize="12"/>
+            </ScrollViewer>
+            <ScrollViewer MaxHeight="46" VerticalScrollBarVisibility="Auto">
+                <TextBlock x:Name="SlideStatusText" Style="{StaticResource NonemptyStatus}" FontSize="12"/>
+            </ScrollViewer>
+            <Button x:Name="CancelSlideButton" Content="Cancel slide analysis" Click="CancelSlide_Click"
+                    Visibility="Collapsed" HorizontalAlignment="Left" Margin="0,8,0,0"/>
+        </StackPanel>
+        <Grid>
+            <Grid.RowDefinitions>
+                <RowDefinition x:Name="CueRow" Height="Auto" MaxHeight="200"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition x:Name="DetailsRow" Height="*"/>
+            </Grid.RowDefinitions>
+            <ScrollViewer x:Name="CueScroll" Grid.Row="0" VerticalScrollBarVisibility="Auto" Padding="0,0,8,0">
+                <StackPanel Margin="0,18,0,20">
+                    <TextBlock x:Name="CueText" Text="Stay with the conversation." FontSize="27" FontWeight="SemiBold"
+                               AutomationProperties.Name="Current meeting suggestion"/>
+                    <TextBlock x:Name="EmptyCueHelp" Text="A recommendation or question will appear when there is something useful to contribute."
+                               Foreground="{DynamicResource Secondary}" Margin="0,12,0,0"/>
+                </StackPanel>
+            </ScrollViewer>
+            <WrapPanel Grid.Row="1" Margin="0,4,0,8">
+                <Button x:Name="FindButton" Content="Suggest now" Click="Find_Click" Style="{StaticResource PrimaryButton}" local:ButtonIcon.Data="{StaticResource SuggestionIcon}"/>
+                <Button x:Name="CaptureSlideButton" Content="Capture slide" Click="CaptureSlide_Click" local:ButtonIcon.Data="{StaticResource CameraIcon}"/>
+                <Button x:Name="CopyButton" Content="Copy" Click="Copy_Click" IsEnabled="False" local:ButtonIcon.Data="{StaticResource CopyIcon}"
+                        AutomationProperties.Name="Copy displayed suggestion"
+                        ToolTip="Copy only the displayed suggestion text. Clipboard history, sync and other apps may retain it."/>
+                <Button x:Name="CoveredButton" Content="Already covered" Click="Covered_Click" IsEnabled="False" Style="{StaticResource QuietButton}"/>
+                <Button x:Name="DismissButton" Content="Dismiss" Click="Dismiss_Click" IsEnabled="False" Style="{StaticResource QuietButton}"/>
+            </WrapPanel>
+            <ScrollViewer x:Name="Body" Grid.Row="2" VerticalScrollBarVisibility="Auto" Padding="0,0,8,0">
+                <StackPanel x:Name="DetailsPanel">
+                    <Expander x:Name="WhyPanel" Header="Why this suggestion?" IsEnabled="False">
+                        <StackPanel>
+                            <TextBlock x:Name="ReasonText"/>
+                            <TextBlock x:Name="CaveatText" Margin="0,8,0,0" Foreground="{DynamicResource Secondary}"/>
+                            <TextBlock x:Name="EvidenceText" Margin="0,10,0,0" Foreground="{DynamicResource Secondary}"/>
+                        </StackPanel>
+                    </Expander>
+                    <TabControl x:Name="ContextTabs" Margin="0,4,0,0">
+                        <TabItem Header="Speech">
+                            <StackPanel>
+                                <TextBlock x:Name="CaptureStatus" Text="Not started" Style="{StaticResource Hint}" AutomationProperties.LiveSetting="Polite"/>
+                                <TextBlock Text="Live words" FontWeight="SemiBold"/>
+                                <TextBlock Text="Provisional recognition. Only finalized speech is sent for analysis." Style="{StaticResource Hint}"/>
+                                <TextBox x:Name="ProvisionalText" Text="Waiting for live words." Height="70" Style="{StaticResource ContextReader}"
+                                         AutomationProperties.Name="Provisional speech, not sent to the model"/>
+                                <TextBlock Text="Finalized speech" FontWeight="SemiBold"/>
+                                <TextBox x:Name="TranscriptText" Text="No finalized speech yet." Height="150" Style="{StaticResource ContextReader}"
+                                         AutomationProperties.Name="Recognized finalized speech"/>
+                            </StackPanel>
+                        </TabItem>
+                        <TabItem Header="AI context">
+                            <StackPanel>
+                                <TextBlock x:Name="ContextStatus" Text="The brief, speech and approved slide summaries inform the model." Style="{StaticResource Hint}"/>
+                                <TextBox x:Name="ContextText" Text="No meeting context yet." Height="180" Style="{StaticResource ContextReader}"
+                                         AutomationProperties.Name="Meeting brief and model-generated memory"/>
+                                <TextBlock Text="Captured slide context" FontWeight="SemiBold"/>
+                                <TextBox x:Name="SlideContextText" Text="No analyzed slides retained." Height="140" Style="{StaticResource ContextReader}"
+                                         AutomationProperties.Name="AI-extracted slide context"/>
+                                <TextBlock x:Name="TimingText" Style="{StaticResource Hint}"/>
+                            </StackPanel>
+                        </TabItem>
+                        <TabItem Header="Display">
+                            <StackPanel>
+                                <TextBlock Text="Make room for the meeting" FontSize="18" FontWeight="SemiBold" Margin="0,0,0,12"/>
+                                <WrapPanel>
+                                    <Button Content="Larger text" Click="Larger_Click"/>
+                                    <Button Content="Smaller text" Click="Smaller_Click"/>
+                                    <Button Content="Center near camera" Click="Center_Click"/>
+                                </WrapPanel>
+                                <CheckBox x:Name="CaptureExclusionBox" IsChecked="True"
+                                          Checked="CaptureExclusionToggleChanged" Unchecked="CaptureExclusionToggleChanged">
+                                    <TextBlock Text="Hide overlay from screen capture"/>
+                                </CheckBox>
+                                <TextBlock Text="Applies in both views. Compatible capture tools can omit this window; verify Teams from another participant's view. Cameras and other capture methods may still see it. Share an application window when unsure."
+                                           Style="{StaticResource Hint}"/>
+                                <TextBlock Text="Suggestion history stays in memory until Stop. Historical suggestions may no longer apply. Copy sends only the displayed text to the Windows clipboard; clipboard history, sync or other apps may retain it after Stop. Capture exclusion does not protect clipboard contents." Style="{StaticResource Hint}"/>
+                                <Button Content="Open teleprompter" Click="Teleprompter_Click" HorizontalAlignment="Left" local:ButtonIcon.Data="{StaticResource ScriptIcon}"/>
+                                <TextBlock Text="Switch to saved scripts with voice following or offline timed scrolling. Back returns here; meeting listening continues in the background."
+                                           Style="{StaticResource Hint}"/>
+                            </StackPanel>
+                        </TabItem>
+                    </TabControl>
+                </StackPanel>
+            </ScrollViewer>
+        </Grid>
+    </DockPanel>
+</Window>

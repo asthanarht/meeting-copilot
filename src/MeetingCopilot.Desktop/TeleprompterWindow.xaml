@@ -1,0 +1,122 @@
+<Window x:Class="MeetingCopilot.Desktop.TeleprompterWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Teleprompter" Style="{StaticResource CopilotWindowStyle}"
+        Width="760" Height="680" MinWidth="540" MinHeight="580"
+        Topmost="True" ResizeMode="CanResizeWithGrip" WindowStartupLocation="Manual"
+        PreviewKeyDown="Reader_KeyDown">
+    <DockPanel Margin="24,18,24,20">
+        <StackPanel DockPanel.Dock="Top">
+            <Grid Margin="0,0,0,10">
+                <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+                <StackPanel Margin="0,0,12,0">
+                    <TextBlock x:Name="ScriptTitle" FontSize="18" FontWeight="SemiBold" TextWrapping="NoWrap" TextTrimming="CharacterEllipsis"/>
+                    <TextBlock x:Name="ModeDescription" Text="Voice follow - local script matching, no LLM" Style="{StaticResource Hint}" Margin="0,4,0,0" FontSize="12"/>
+                </StackPanel>
+                <Button Grid.Column="1" Content="Close reader" Click="Close_Click" Style="{StaticResource QuietButton}" Margin="0"/>
+            </Grid>
+            <TextBlock x:Name="CaptureStatus" Style="{StaticResource Hint}" FontSize="12" Margin="0,0,0,8" AutomationProperties.LiveSetting="Polite"/>
+            <TabControl x:Name="ModeTabs" SelectionChanged="Mode_Changed">
+                <TabItem Header="Follow my voice">
+                    <StackPanel>
+                        <TextBlock x:Name="MicrophoneText" Text="Checking saved microphone configuration..." Style="{StaticResource Hint}" Margin="0,0,0,4"/>
+                        <CheckBox x:Name="VoiceConsentBox" Checked="VoiceConsent_Changed" Unchecked="VoiceConsent_Changed" Margin="0,4,0,6">
+                            <TextBlock Text="Send this microphone's audio to Azure Speech (billable). The script stays local. I have permission to use this audio." FontSize="12"/>
+                        </CheckBox>
+                        <Button Content="Refresh saved connection" Click="RefreshVoice_Click" Style="{StaticResource QuietButton}" HorizontalAlignment="Left"/>
+                    </StackPanel>
+                </TabItem>
+                <TabItem Header="Timed / offline">
+                    <TextBlock Text="Scroll at a fixed pace. This mode does not listen or follow your words." Style="{StaticResource Hint}"/>
+                </TabItem>
+            </TabControl>
+            <Expander x:Name="ReadingSettings" Header="Reading settings" Expanded="ReadingSettings_Expanded">
+                <ScrollViewer MaxHeight="190" VerticalScrollBarVisibility="Auto">
+                <StackPanel>
+                    <TextBlock Text="Adjust for a comfortable reading distance. Settings are saved with this script when you close the reader." Style="{StaticResource Hint}"/>
+                    <WrapPanel>
+                        <StackPanel Margin="0,0,20,4">
+                            <TextBlock x:Name="FontLabel" Margin="0,0,0,6"/>
+                            <WrapPanel>
+                                <Button x:Name="SmallerButton" Content="Smaller" Click="Smaller_Click"/>
+                                <Button x:Name="LargerButton" Content="Larger" Click="Larger_Click"/>
+                            </WrapPanel>
+                        </StackPanel>
+                        <StackPanel Margin="0,0,20,4">
+                            <TextBlock x:Name="SpacingLabel" Margin="0,0,0,6"/>
+                            <WrapPanel>
+                                <Button x:Name="TighterButton" Content="Tighter" Click="Tighter_Click"/>
+                                <Button x:Name="LooserButton" Content="Looser" Click="Looser_Click"/>
+                            </WrapPanel>
+                        </StackPanel>
+                        <StackPanel Margin="0,0,0,4">
+                            <TextBlock x:Name="WidthLabel" Margin="0,0,0,6"/>
+                            <WrapPanel>
+                                <Button x:Name="NarrowerButton" Content="Narrower" Click="Narrower_Click"/>
+                                <Button x:Name="WiderButton" Content="Wider" Click="Wider_Click"/>
+                            </WrapPanel>
+                        </StackPanel>
+                    </WrapPanel>
+                    <CheckBox x:Name="ExcludeCaptureBox" Checked="CaptureChanged" Unchecked="CaptureChanged">
+                        <TextBlock Text="Hide this reader from supported screen capture tools"/>
+                    </CheckBox>
+                </StackPanel>
+                </ScrollViewer>
+            </Expander>
+        </StackPanel>
+        <StackPanel DockPanel.Dock="Bottom" Margin="0,14,0,0">
+            <StackPanel x:Name="VoiceFeedback" Margin="0,0,0,8">
+                <TextBlock x:Name="VoiceStatus" Text="Waiting for you to start voice following." Height="36"
+                           Foreground="{DynamicResource Secondary}" FontSize="12" AutomationProperties.LiveSetting="Polite"/>
+                <TextBlock x:Name="HeardText" Text="Recognized words will appear here; they are not saved." Height="36"
+                           Foreground="{DynamicResource Secondary}" FontSize="12"/>
+            </StackPanel>
+            <TextBlock x:Name="VoiceError" Style="{StaticResource NonemptyStatus}" Foreground="{DynamicResource Danger}" Margin="0,0,0,8"
+                       AutomationProperties.LiveSetting="Polite"/>
+            <Grid Margin="0,0,0,10">
+                <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+                <TextBlock x:Name="PlaybackStatus" Text="Paused - press Play when you are ready." Foreground="{DynamicResource Secondary}"
+                           AutomationProperties.LiveSetting="Polite"/>
+                <TextBlock x:Name="ProgressText" Grid.Column="1" Foreground="{DynamicResource Secondary}" Margin="12,0,0,0"/>
+            </Grid>
+            <WrapPanel>
+                <Button x:Name="PlayButton" Content="Play" Click="Play_Click" Style="{StaticResource PrimaryButton}" MinWidth="82"/>
+                <Button x:Name="PreviousButton" Content="Previous paragraph" Click="Previous_Click"/>
+                <Button x:Name="NextButton" Content="Next paragraph" Click="Next_Click"/>
+                <Button x:Name="RestartButton" Content="Restart" Click="Restart_Click" Style="{StaticResource QuietButton}"/>
+            </WrapPanel>
+            <WrapPanel x:Name="TimedControls" VerticalAlignment="Center">
+                <Button x:Name="SlowerButton" Content="Slower" Click="Slower_Click" Style="{StaticResource QuietButton}"/>
+                <TextBlock x:Name="SpeedText" VerticalAlignment="Center" Margin="0,0,12,6"/>
+                <Button x:Name="FasterButton" Content="Faster" Click="Faster_Click" Style="{StaticResource QuietButton}"/>
+            </WrapPanel>
+            <TextBlock Text="Ctrl+Space start / pause  |  Esc pause  |  Page Up / Down paragraphs&#10;Click a word to resume there. Ctrl+Home restarts. Shortcuts require this window's focus."
+                       Foreground="{DynamicResource Secondary}" FontSize="12"/>
+        </StackPanel>
+        <Border Background="{DynamicResource InputSurface}" BorderBrush="{DynamicResource Stroke}" BorderThickness="0,1,0,1">
+            <Grid x:Name="ReadingArea" Focusable="True" AutomationProperties.Name="Presentation reading area">
+                <ScrollViewer x:Name="ReaderScroll" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled"
+                              CanContentScroll="False" ScrollChanged="Reader_ScrollChanged"
+                              PreviewMouseWheel="Reader_ManualScroll" PreviewMouseLeftButtonDown="Reader_MouseDown"
+                              SizeChanged="Reader_SizeChanged">
+                    <StackPanel x:Name="ReadingContent" Margin="28,0" HorizontalAlignment="Center">
+                        <Border Height="48"/>
+                        <StackPanel x:Name="Paragraphs"/>
+                        <Border x:Name="EndSpace"/>
+                    </StackPanel>
+                </ScrollViewer>
+                <Border VerticalAlignment="Top" Height="1" Margin="12,47,28,0"
+                        Background="{DynamicResource Stroke}" IsHitTestVisible="False"/>
+                <Path Data="M 0 0 L 7 5 L 0 10 Z" Fill="{DynamicResource Accent}" HorizontalAlignment="Left"
+                      VerticalAlignment="Top" Margin="10,58,0,0" IsHitTestVisible="False"/>
+                <Canvas IsHitTestVisible="False" ClipToBounds="True">
+                    <Border x:Name="ActiveWordHighlight" Visibility="Collapsed" Background="{DynamicResource Accent}"
+                            Padding="2,0" CornerRadius="3">
+                        <TextBlock x:Name="ActiveWordText" Foreground="{DynamicResource AccentInk}"
+                                   FontWeight="SemiBold" TextWrapping="NoWrap" AutomationProperties.Name="Current spoken word"/>
+                    </Border>
+                </Canvas>
+            </Grid>
+        </Border>
+    </DockPanel>
+</Window>

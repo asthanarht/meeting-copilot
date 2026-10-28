@@ -1,0 +1,26 @@
+<Window x:Class="MeetingCopilot.Desktop.SlidePreviewWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Review slide before sending" Style="{StaticResource CopilotWindowStyle}"
+        Width="820" Height="620" MinWidth="420" MinHeight="320"
+        WindowStartupLocation="CenterOwner" Topmost="True" ShowInTaskbar="False">
+    <DockPanel Margin="28,24,28,24">
+        <StackPanel DockPanel.Dock="Top">
+            <TextBlock Text="Review before you share" FontSize="26" FontWeight="SemiBold"/>
+            <TextBlock Text="Only the image below will be sent to your configured model. Check for chat messages, notifications or other private content before sending."
+                       Margin="0,8,0,12" Foreground="{DynamicResource Secondary}"/>
+            <TextBlock x:Name="PrivacyStatus" Foreground="{DynamicResource Secondary}" FontSize="12"/>
+        </StackPanel>
+        <StackPanel DockPanel.Dock="Bottom" Margin="0,12,0,0">
+            <TextBlock Text="One image-analysis request may be billed. The image is not saved to disk or the clipboard. Its AI-extracted context stays in memory until Stop."
+                       Foreground="{DynamicResource Secondary}" FontSize="12" Margin="0,0,0,12"/>
+            <WrapPanel HorizontalAlignment="Right">
+                <Button x:Name="CancelCaptureButton" Content="Cancel" IsCancel="True" Style="{StaticResource QuietButton}"/>
+                <Button x:Name="SendSlideButton" Content="Send slide to AI" IsDefault="True" Click="Send_Click" Style="{StaticResource PrimaryButton}"/>
+            </WrapPanel>
+        </StackPanel>
+        <Border BorderBrush="{DynamicResource Stroke}" Background="{DynamicResource InputSurface}" BorderThickness="1" CornerRadius="6" Padding="8" Margin="0,16,0,0">
+            <Image x:Name="SlideImagePreview" Stretch="Uniform" AutomationProperties.Name="Slide image to be sent"/>
+        </Border>
+    </DockPanel>
+</Window>

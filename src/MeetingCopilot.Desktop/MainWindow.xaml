@@ -1,0 +1,209 @@
+<Window x:Class="MeetingCopilot.Desktop.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:local="clr-namespace:MeetingCopilot.Desktop"
+        Style="{StaticResource CopilotWindowStyle}"
+        Title="Meeting copilot - setup" Width="780" Height="900"
+        MinWidth="560" MinHeight="600" WindowStartupLocation="CenterScreen">
+    <DockPanel Margin="32,24,32,24">
+        <StackPanel DockPanel.Dock="Top" Margin="0,0,0,20">
+            <StackPanel Orientation="Horizontal">
+                <Image Source="Assets/MeetingCopilot.png" Width="40" Height="40" Margin="0,0,12,0"
+                       AutomationProperties.Name="Meeting Copilot icon" RenderOptions.BitmapScalingMode="HighQuality"/>
+                <TextBlock Text="Meeting copilot" FontSize="28" FontWeight="SemiBold" VerticalAlignment="Center"/>
+            </StackPanel>
+            <TextBlock Text="Stay in the discussion. Keep a useful question close." Foreground="{DynamicResource Secondary}" Margin="0,6,0,0"/>
+            <WrapPanel Margin="0,14,0,0">
+                <Button x:Name="TeleprompterButton" Content="Open teleprompter" Click="Teleprompter_Click" local:ButtonIcon.Data="{StaticResource ScriptIcon}"/>
+                <TextBlock Text="Saved scripts - voice follow or timed reading" Foreground="{DynamicResource Secondary}"
+                           FontSize="12" VerticalAlignment="Center" Margin="0,0,0,6"/>
+            </WrapPanel>
+        </StackPanel>
+        <Border DockPanel.Dock="Bottom" BorderBrush="{DynamicResource Stroke}" BorderThickness="0,1,0,0" Padding="0,14,0,0" Margin="0,16,0,0">
+            <StackPanel>
+                <CheckBox x:Name="ConsentBox" Margin="0,0,0,10">
+                    <TextBlock Text="I have participant consent and organizational permission to process this meeting."/>
+                </CheckBox>
+                <TextBlock x:Name="ErrorText" Foreground="{DynamicResource Danger}" Style="{StaticResource NonemptyStatus}"
+                           Margin="0,0,0,10" AutomationProperties.LiveSetting="Polite"/>
+                <WrapPanel>
+                    <Button x:Name="StartButton" Content="Start live overlay" Click="Start_Click" Style="{StaticResource PrimaryButton}" local:ButtonIcon.Data="{StaticResource PlayIcon}"/>
+                    <Button x:Name="PreviewButton" Content="Try a sample" Click="Demo_Click" Style="{StaticResource QuietButton}"/>
+                </WrapPanel>
+                <TextBlock Text="Sample mode uses invented text. No audio capture or cloud calls." Style="{StaticResource Hint}" Margin="0,2,0,8" FontSize="12"/>
+                <TextBlock x:Name="SettingsStatus" Text="Connection settings save automatically. Keys are encrypted for this Windows account."
+                           Foreground="{DynamicResource Secondary}" FontSize="12" AutomationProperties.LiveSetting="Polite"/>
+            </StackPanel>
+        </Border>
+        <Grid x:Name="SetupPanel">
+                <TabControl x:Name="SetupTabs">
+                    <TabItem Header="Meeting">
+                        <ScrollViewer x:Name="MeetingScroll" VerticalScrollBarVisibility="Auto">
+                            <StackPanel Margin="0,0,16,0">
+                                <TextBlock Text="Your audio" Style="{StaticResource SectionTitle}" Margin="0,4,0,12"/>
+                                <TextBlock Text="Playback device used by Teams"/>
+                                <ComboBox x:Name="PlaybackBox" AutomationProperties.Name="Meeting playback device"/>
+                                <CheckBox x:Name="IncludeMic">
+                                    <TextBlock Text="Also listen to my microphone (use headphones)"/>
+                                </CheckBox>
+                                <TextBlock Text="Microphone for meeting capture or teleprompter voice-follow"/>
+                                <ComboBox x:Name="MicrophoneBox" AutomationProperties.Name="Microphone device"/>
+                                <TextBlock Text="Selecting a microphone does not start listening. The teleprompter asks for separate permission." Style="{StaticResource Hint}" FontSize="12"/>
+                                <Button Content="Refresh audio devices" HorizontalAlignment="Left" Click="Refresh_Click" Style="{StaticResource QuietButton}"/>
+                                <TextBlock Text="Playback captures all audio on this device, not just Teams. Close unrelated audio. Headphones reduce echo; speaker separation is not guaranteed." Style="{StaticResource Hint}"/>
+                                <TextBlock Text="Give the AI a head start" Style="{StaticResource SectionTitle}"/>
+                                <TextBlock Text="Meeting goal, known constraints or a design excerpt (optional)" Style="{StaticResource Hint}"/>
+                                <TextBox x:Name="BriefBox" AcceptsReturn="True" Height="120" MaxLength="12000"
+                                         TextWrapping="Wrap" VerticalScrollBarVisibility="Auto" VerticalContentAlignment="Top"
+                                         AutomationProperties.Name="Meeting brief"/>
+                                <TextBlock Text="Up to 12,000 characters. Kept for this session, not saved." Style="{StaticResource Hint}" FontSize="12"/>
+                                <Expander Header="Improve recognition of names and technical terms">
+                                    <StackPanel>
+                                        <TextBlock Text="Up to 50 hints, separated by commas." Style="{StaticResource Hint}"/>
+                                        <TextBox x:Name="PhrasesBox" MaxLength="2000" AutomationProperties.Name="Speech vocabulary hints"/>
+                                    </StackPanel>
+                                </Expander>
+                            </StackPanel>
+                        </ScrollViewer>
+                    </TabItem>
+                    <TabItem Header="Connections">
+                        <ScrollViewer x:Name="ConnectionsScroll" VerticalScrollBarVisibility="Auto">
+                            <StackPanel Margin="0,0,16,0">
+                                <TextBlock Text="Azure Speech" Style="{StaticResource SectionTitle}" Margin="0,4,0,12"/>
+                                <TextBlock Text="Transcription provider"/>
+                                <ComboBox x:Name="SpeechProviderBox" SelectedIndex="1" SelectionChanged="SpeechProviderChanged" AutomationProperties.Name="Speech transcription provider">
+                                    <ComboBoxItem Content="MAI-Transcribe-2 (short audio uploads, preview)"/>
+                                    <ComboBoxItem Content="Azure Speech (live streaming - recommended)"/>
+                                </ComboBox>
+                                <TextBlock Text="Speech resource endpoint"/>
+                                <TextBox x:Name="SpeechEndpointBox" AutomationProperties.Name="Speech resource endpoint"/>
+                                <StackPanel x:Name="MaiSettingsPanel">
+                                    <TextBlock Text="English transcription, not translation. Uploads 2-6 second segments plus service latency. No partial words. Speaker IDs are not linked across segments." Style="{StaticResource Hint}"/>
+                                </StackPanel>
+                                <StackPanel x:Name="StreamingSettingsPanel" Visibility="Collapsed">
+                                    <TextBlock Text="Region override (optional; leave blank to use the endpoint)"/>
+                                    <TextBox x:Name="RegionBox" AutomationProperties.Name="Azure Speech region"/>
+                                    <TextBlock Text="Continuous streaming shows partial words as you speak. Finalized speech feeds the question model." Style="{StaticResource Hint}"/>
+                                    <TextBlock Text="English recognition locale"/>
+                                    <ComboBox x:Name="LocaleBox" SelectedIndex="0" AutomationProperties.Name="English recognition locale">
+                                        <ComboBoxItem Content="en-US"/><ComboBoxItem Content="en-GB"/>
+                                        <ComboBoxItem Content="en-IN"/><ComboBoxItem Content="en-AU"/>
+                                    </ComboBox>
+                                </StackPanel>
+                                <TextBlock Text="Speech API key"/>
+                                <PasswordBox x:Name="SpeechKeyBox" AutomationProperties.Name="Azure Speech API key"/>
+                                <TextBlock Text="Meeting AI" Style="{StaticResource SectionTitle}"/>
+                                <TextBlock Text="API and authentication"/>
+                                <ComboBox x:Name="ModelConnectionBox" SelectedIndex="2" SelectionChanged="ModelConnectionChanged" AutomationProperties.Name="Model API and authentication">
+                                    <ComboBoxItem Content="Responses API - Microsoft Entra (no API key)"/>
+                                    <ComboBoxItem Content="Chat Completions - API key (legacy)"/>
+                                    <ComboBoxItem Content="Responses API - API key (no sign-in)"/>
+                                    <ComboBoxItem Content="OpenAI-compatible - cloud or local"/>
+                                    <ComboBoxItem Content="Google Gemini - native API"/>
+                                    <ComboBoxItem Content="Anthropic Claude - native API"/>
+                                    <ComboBoxItem Content="xAI Grok - Responses API"/>
+                                </ComboBox>
+                                <StackPanel x:Name="AzureModelPanel">
+                                <TextBlock x:Name="ModelEndpointLabel" Text="Foundry endpoint ending in /openai/v1"/>
+                                <TextBox x:Name="EndpointBox" AutomationProperties.Name="Azure OpenAI endpoint"/>
+                                <TextBlock Text="Deployment name (must support JSON output)"/>
+                                <TextBox x:Name="DeploymentBox" AutomationProperties.Name="Azure OpenAI deployment"/>
+                                <StackPanel x:Name="EntraTenantPanel">
+                                    <TextBlock Text="Resource tenant ID (optional GUID)"/>
+                                    <TextBox x:Name="EntraTenantBox" AutomationProperties.Name="Foundry resource tenant ID"/>
+                                </StackPanel>
+                                <TextBlock x:Name="EntraHelp" Text="Uses DefaultAzureCredential and https://ai.azure.com/.default. Sign in with Azure CLI (az login) or Visual Studio using an authorized identity." Style="{StaticResource Hint}"/>
+                                <StackPanel x:Name="ModelKeyPanel" Visibility="Collapsed">
+                                    <TextBlock Text="Azure OpenAI API key"/>
+                                    <PasswordBox x:Name="ModelKeyBox" AutomationProperties.Name="Azure OpenAI API key"/>
+                                </StackPanel>
+                                <TextBlock Text="Responses connections check model access with synthetic text before opening audio devices. API-key mode needs a key from this Foundry resource with key authentication enabled, not an Azure sign-in. Slide capture also requires image support." Style="{StaticResource Hint}"/>
+                                </StackPanel>
+                                <StackPanel x:Name="ExternalModelPanel" Visibility="Collapsed">
+                                    <TextBlock Text="API base URL"/>
+                                    <TextBox x:Name="ExternalEndpointBox" AutomationProperties.Name="Model provider API base URL"/>
+                                    <TextBlock x:Name="ExternalEndpointHelp" Style="{StaticResource Hint}" FontSize="12"/>
+                                    <TextBlock Text="Model ID"/>
+                                    <TextBox x:Name="ExternalModelBox" AutomationProperties.Name="Provider model ID"/>
+                                    <TextBlock Text="Use an exact model ID available in your provider account or running local server. Models are not downloaded automatically." Style="{StaticResource Hint}" FontSize="12"/>
+                                    <StackPanel x:Name="ExternalAuthPanel">
+                                        <TextBlock Text="Authentication"/>
+                                        <ComboBox x:Name="ExternalAuthBox" SelectedIndex="0" AutomationProperties.Name="Provider authentication">
+                                            <ComboBoxItem Content="API key (Bearer)"/>
+                                            <ComboBoxItem Content="No key - local loopback only"/>
+                                        </ComboBox>
+                                    </StackPanel>
+                                    <StackPanel x:Name="ExternalKeyPanel">
+                                        <TextBlock Text="This provider's API key"/>
+                                        <PasswordBox x:Name="ExternalKeyBox" AutomationProperties.Name="Selected provider API key"/>
+                                    </StackPanel>
+                                    <TextBlock x:Name="ModelDestinationText" Style="{StaticResource Hint}" AutomationProperties.LiveSetting="Polite"/>
+                                    <TextBlock Text="Separate credentials are saved for each provider. Changing its URL clears the key. Meeting text goes only to the selected endpoint; no provider fallback. Azure Speech still handles audio." Style="{StaticResource Hint}" FontSize="12"/>
+                                    <Expander x:Name="ExternalAdvanced" Header="Model compatibility and limits">
+                                        <StackPanel>
+                                            <StackPanel x:Name="CompatibleFormatPanel">
+                                                <TextBlock Text="Output format"/>
+                                                <ComboBox x:Name="ExternalFormatBox" SelectedIndex="0" AutomationProperties.Name="Compatible output format">
+                                                    <ComboBoxItem Content="JSON object"/>
+                                                    <ComboBoxItem Content="Strict JSON schema"/>
+                                                    <ComboBoxItem Content="Prompt-only JSON (no format parameter)"/>
+                                                </ComboBox>
+                                                <TextBlock Text="Output-token parameter"/>
+                                                <ComboBox x:Name="ExternalTokenParameterBox" SelectedIndex="0" AutomationProperties.Name="Output token parameter">
+                                                    <ComboBoxItem Content="max_completion_tokens (OpenAI)"/>
+                                                    <ComboBoxItem Content="max_tokens (many local servers)"/>
+                                                </ComboBox>
+                                            </StackPanel>
+                                            <TextBlock Text="Maximum output tokens"/>
+                                            <ComboBox x:Name="ExternalOutputBox" SelectedIndex="1" AutomationProperties.Name="Maximum model output tokens">
+                                                <ComboBoxItem Content="2,200" Tag="2200"/><ComboBoxItem Content="4,096" Tag="4096"/><ComboBoxItem Content="8,192" Tag="8192"/>
+                                            </ComboBox>
+                                            <TextBlock Text="Request deadline"/>
+                                            <ComboBox x:Name="ExternalTimeoutBox" SelectedIndex="0" AutomationProperties.Name="Model request deadline">
+                                                <ComboBoxItem Content="45 seconds" Tag="45"/><ComboBoxItem Content="60 seconds" Tag="60"/><ComboBoxItem Content="90 seconds" Tag="90"/>
+                                            </ComboBox>
+                                            <TextBlock Text="Speech and slide-text budget per request"/>
+                                            <ComboBox x:Name="ExternalContextBox" SelectedIndex="1" AutomationProperties.Name="Model context character budget">
+                                                <ComboBoxItem Content="16,000 characters" Tag="16000"/><ComboBoxItem Content="24,000 characters" Tag="24000"/><ComboBoxItem Content="48,000 characters" Tag="48000"/>
+                                            </ComboBox>
+                                            <TextBlock Text="Instructions, brief and summaries are additional input. This is not a token-context guarantee or a retention limit. Full session history stays in memory until Stop. Slower models delay live suggestions." Style="{StaticResource Hint}" FontSize="12"/>
+                                        </StackPanel>
+                                    </Expander>
+                                    <TextBlock Text="These new connections support text analysis and live suggestions. Slide-image analysis is not enabled on these adapters yet; use an existing vision-capable Foundry Responses connection for slides." Style="{StaticResource Hint}"/>
+                                </StackPanel>
+                                <WrapPanel>
+                                    <Button x:Name="TestModelButton" Content="Test model connection" Click="TestModel_Click"/>
+                                    <Button x:Name="CancelModelTestButton" Content="Cancel test" Click="CancelModelTest_Click" Visibility="Collapsed" Style="{StaticResource QuietButton}"/>
+                                </WrapPanel>
+                                <TextBlock Text="Sends one synthetic discussion, not your meeting brief, saved scripts or audio. The provider may charge for the request." Style="{StaticResource Hint}" FontSize="12"/>
+                                <TextBlock x:Name="ModelTestStatus" Style="{StaticResource NonemptyStatus}" AutomationProperties.LiveSetting="Polite"/>
+                                <WrapPanel Margin="0,8,0,0">
+                                    <Button x:Name="SaveSettingsButton" Content="Save configuration" Click="SaveSettings_Click" local:ButtonIcon.Data="{StaticResource SaveIcon}"/>
+                                    <Button x:Name="ForgetSettingsButton" Content="Forget saved settings" Click="ForgetSettings_Click" Style="{StaticResource DangerButton}"/>
+                                </WrapPanel>
+                            </StackPanel>
+                        </ScrollViewer>
+                    </TabItem>
+                    <TabItem Header="Privacy">
+                        <ScrollViewer VerticalScrollBarVisibility="Auto">
+                            <StackPanel Margin="0,0,16,0">
+                                <TextBlock Text="What leaves this device" Style="{StaticResource SectionTitle}" Margin="0,4,0,12"/>
+                                <TextBlock Text="Audio goes to Azure Speech. Finalized speech, your brief and bounded context go to the selected AI provider or local server. Slide images are sent only after you review and approve them on a supported connection." Style="{StaticResource Hint}"/>
+                                <TextBlock Text="What stays on this device" Style="{StaticResource SectionTitle}"/>
+                                <TextBlock Text="Connection settings are saved locally. API keys are encrypted with Windows DPAPI for your Windows account. Recordings, slide images, transcripts, question history, meeting context and consent are not saved." Style="{StaticResource Hint}"/>
+                                <TextBlock Text="Teleprompter titles, scripts and reading settings are saved locally with Windows account encryption. Delete them in the script library. Voice following sends microphone audio to Azure Speech only after separate permission; matching stays local, with no script upload or LLM. Timed mode stays offline. Neither mode adds script text to meeting context." Style="{StaticResource Hint}"/>
+                                <TextBlock Text="Cloud retention follows your providers' configuration and terms. Stop clears this session's context and question history." Style="{StaticResource Hint}"/>
+                                <TextBlock Text="Screen sharing" Style="{StaticResource SectionTitle}"/>
+                                <CheckBox x:Name="ExcludeCaptureBox" IsChecked="True">
+                                    <TextBlock Text="Hide overlay from screen capture (supported tools only)"/>
+                                </CheckBox>
+                                <TextBlock Text="Capture exclusion is requested by default for the overlay and slide preview, not this setup screen. Check the overlay status and verify the remote view in Teams. No protection covers every capture method or a camera; share a specific application when unsure." Style="{StaticResource Hint}"/>
+                                <TextBlock Text="You stay in control" Style="{StaticResource SectionTitle}"/>
+                                <TextBlock Text="English recognition, not translation. Speech recognition, extracted slide content and AI suggestions can be wrong. Review questions before raising them; the app does not speak in the meeting." Style="{StaticResource Hint}"/>
+                            </StackPanel>
+                        </ScrollViewer>
+                    </TabItem>
+                </TabControl>
+        </Grid>
+    </DockPanel>
+</Window>

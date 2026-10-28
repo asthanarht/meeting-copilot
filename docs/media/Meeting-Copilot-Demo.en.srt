@@ -1,0 +1,95 @@
+1
+00:00:00,450 --> 00:00:04,508
+Meet Meeting Copilot, a private desktop assistant for live discussions.
+
+2
+00:00:04,708 --> 00:00:09,450
+It helps you contribute useful questions and recommendations, while the meeting is still happening.
+
+3
+00:00:10,450 --> 00:00:14,394
+Choose your meeting playback device, and optionally include your microphone.
+
+4
+00:00:14,594 --> 00:00:19,227
+Add a short brief, confirm participant consent, then start the live overlay.
+
+5
+00:00:20,450 --> 00:00:25,284
+When finalized speech reveals a useful gap, the overlay can suggest a grounded question.
+
+6
+00:00:25,484 --> 00:00:28,542
+Open the explanation to review its evidence and uncertainty.
+
+7
+00:00:30,450 --> 00:00:34,144
+It can also propose an approach, not just ask another question.
+
+8
+00:00:34,344 --> 00:00:39,338
+Here, a sample recommendation suggests backoff with jitter to spread retries during recovery.
+
+9
+00:00:40,450 --> 00:00:44,279
+Copy a suggestion, mark it already covered, or dismiss it.
+
+10
+00:00:44,479 --> 00:00:49,343
+Browse earlier suggestions without posting anything to Teams. You decide what to say.
+
+11
+00:00:50,450 --> 00:00:55,098
+Analysis continues throughout longer meetings, with recent speech and relevant earlier context.
+
+12
+00:00:55,298 --> 00:00:59,450
+Session history stays in memory until Stop, rather than waiting until the meeting ends.
+
+13
+00:01:00,450 --> 00:01:03,765
+Keep Foundry, or select Gemini, Claude, or Grok.
+
+14
+00:01:03,965 --> 00:01:09,450
+Each provider has its own encrypted credentials. Existing speech and teleprompter features stay independent.
+
+15
+00:01:10,450 --> 00:01:14,284
+Open AI compatible endpoints support cloud models and local servers.
+
+16
+00:01:14,484 --> 00:01:18,927
+Test with synthetic text before a meeting. Azure Speech still handles audio.
+
+17
+00:01:20,450 --> 00:01:23,903
+For presentations, save your script in the built-in library.
+
+18
+00:01:24,103 --> 00:01:29,450
+Open the reader without starting meeting capture. Your saved script stays separate from meeting context.
+
+19
+00:01:30,450 --> 00:01:33,331
+The minimal overlay keeps your script above your slides.
+
+20
+00:01:33,531 --> 00:01:39,450
+Run starts offline timed scrolling. Stop holds your place. You can also scroll manually.
+
+21
+00:01:40,450 --> 00:01:44,119
+Voice following highlights matched words and holds position when you stop.
+
+22
+00:01:44,319 --> 00:01:49,377
+Microphone audio goes to Azure Speech with your permission. Script matching stays local.
+
+23
+00:01:50,450 --> 00:01:54,537
+Capture exclusion depends on your sharing tool. Check another participant view.
+
+24
+00:01:54,737 --> 00:01:59,450
+Review every suggestion. Meeting Copilot helps you contribute; you remain in control.

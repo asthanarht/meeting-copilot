@@ -1,0 +1,9 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/MeetingCopilot.Core/MeetingCopilot.Core.csproj" />
+    <Project Path="src/MeetingCopilot.Desktop/MeetingCopilot.Desktop.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/MeetingCopilot.Tests/MeetingCopilot.Tests.csproj" />
+  </Folder>
+</Solution>
