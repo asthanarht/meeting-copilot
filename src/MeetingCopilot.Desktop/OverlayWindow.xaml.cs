@@ -246,7 +246,7 @@ public partial class OverlayWindow : Window
     private void BrowseQuestions_Click(object sender, RoutedEventArgs e)
     {
         QuestionHistoryList.Visibility = QuestionHistoryList.Visibility == Visibility.Visible ? Visibility.Collapsed : Visibility.Visible;
-        MinHeight = QuestionHistoryList.Visibility == Visibility.Visible ? 640 : 500;
+        MinHeight = QuestionHistoryList.Visibility == Visibility.Visible ? 700 : 560;
         if (compact)
             Height = Math.Max(MinHeight, Math.Min(QuestionHistoryList.Visibility == Visibility.Visible ? 720 : 560, SystemParameters.WorkArea.Height - 48));
         RefreshHistoryNavigation();
@@ -285,6 +285,7 @@ public partial class OverlayWindow : Window
         StatusText.Text = update.Status;
         ErrorText.Text = update.Error ?? "";
         CueText.Text = update.Cue?.Text ?? "Stay with the conversation.";
+        CueTypeTag.Tag = update.Cue?.Kind;
         EmptyCueHelp.Visibility = update.Cue is null ? Visibility.Visible : Visibility.Collapsed;
         ReasonText.Text = update.Cue is { } cue ? $"{cue.Kind}: {cue.Reason}" : "";
         CaveatText.Text = update.Cue?.Caveat ?? "";

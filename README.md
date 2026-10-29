@@ -29,7 +29,7 @@ Click the preview to open the MP4 on GitHub, or download it if your browser does
 | Live questions and recommendations | Suggests a useful contribution during the discussion, not after it ends. |
 | Evidence and uncertainty | Shows why a suggestion matters and the context supporting it. |
 | Continuous meeting context | Keeps accepted speech and summary history in memory until Stop, while bounding each model request. |
-| Copy and suggestion history | Copy a suggestion, revisit earlier ones, dismiss it, or mark it already covered. |
+| Type tags and suggestion history | Distinguish Question, Improvement, Potential gap and Alternative at a glance, both on the current suggestion and in history. Copy, revisit, dismiss or mark it already covered. |
 | Multiple AI providers | Choose Foundry, Gemini, Claude, Grok, or an OpenAI-compatible hosted/local model. |
 | Approved slide capture | Review a selected slide region before sending it to a supported vision connection. |
 | Saved presentation scripts | Save and edit scripts locally with Windows-account encryption. |

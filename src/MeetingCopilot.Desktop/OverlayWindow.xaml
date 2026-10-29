@@ -3,10 +3,36 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:local="clr-namespace:MeetingCopilot.Desktop"
         Style="{StaticResource CopilotWindowStyle}"
-        Title="Meeting copilot" Width="660" Height="860" MinWidth="520" MinHeight="500"
+        Title="Meeting copilot" Width="660" Height="860" MinWidth="520" MinHeight="560"
         Topmost="True" ShowActivated="False" ResizeMode="CanResizeWithGrip"
         WindowStartupLocation="Manual">
     <Window.Resources>
+        <Style x:Key="SuggestionTypeTag" TargetType="Label">
+            <Setter Property="Content" Value=""/>
+            <Setter Property="FontSize" Value="12"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="Foreground" Value="{DynamicResource AccentInk}"/>
+            <Setter Property="Background" Value="{DynamicResource Accent}"/>
+            <Setter Property="Padding" Value="8,3"/>
+            <Setter Property="HorizontalAlignment" Value="Left"/>
+            <Setter Property="VerticalAlignment" Value="Center"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Label">
+                        <Border Background="{TemplateBinding Background}" CornerRadius="4" Padding="{TemplateBinding Padding}">
+                            <ContentPresenter/>
+                        </Border>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+            <Style.Triggers>
+                <Trigger Property="Tag" Value="question"><Setter Property="Content" Value="Question"/></Trigger>
+                <Trigger Property="Tag" Value="recommendation"><Setter Property="Content" Value="Improvement"/></Trigger>
+                <Trigger Property="Tag" Value="gap"><Setter Property="Content" Value="Potential gap"/></Trigger>
+                <Trigger Property="Tag" Value="alternative"><Setter Property="Content" Value="Alternative"/></Trigger>
+                <Trigger Property="Content" Value=""><Setter Property="Visibility" Value="Collapsed"/></Trigger>
+            </Style.Triggers>
+        </Style>
         <Style x:Key="ContextReader" TargetType="TextBox" BasedOn="{StaticResource {x:Type TextBox}}">
             <Setter Property="IsReadOnly" Value="True"/>
             <Setter Property="TextWrapping" Value="Wrap"/>
@@ -54,11 +80,13 @@
                         <ListBox.ItemTemplate>
                             <DataTemplate>
                                 <StackPanel>
-                                    <StackPanel Orientation="Horizontal" Margin="0,0,0,4">
+                                    <WrapPanel Margin="0,0,0,4">
+                                        <Label x:Name="HistoryTypeTag" Tag="{Binding Cue.Kind}" Style="{StaticResource SuggestionTypeTag}"
+                                               Margin="0,0,12,0"/>
                                         <TextBlock Text="{Binding CreatedAt.LocalDateTime, StringFormat={}{0:t}}" FontSize="12"
-                                                   Margin="0,0,12,0"/>
-                                        <TextBlock Text="{Binding State}" FontSize="12"/>
-                                    </StackPanel>
+                                                   Margin="0,0,12,0" VerticalAlignment="Center"/>
+                                        <TextBlock Text="{Binding State}" FontSize="12" VerticalAlignment="Center"/>
+                                    </WrapPanel>
                                     <TextBlock Text="{Binding Cue.Text}" TextWrapping="Wrap"/>
                                 </StackPanel>
                             </DataTemplate>
@@ -95,6 +123,8 @@
             </Grid.RowDefinitions>
             <ScrollViewer x:Name="CueScroll" Grid.Row="0" VerticalScrollBarVisibility="Auto" Padding="0,0,8,0">
                 <StackPanel Margin="0,18,0,20">
+                    <Label x:Name="CueTypeTag" Style="{StaticResource SuggestionTypeTag}" Margin="0,0,0,10"
+                           AutomationProperties.LiveSetting="Polite"/>
                     <TextBlock x:Name="CueText" Text="Stay with the conversation." FontSize="27" FontWeight="SemiBold"
                                AutomationProperties.Name="Current meeting suggestion"/>
                     <TextBlock x:Name="EmptyCueHelp" Text="A recommendation or question will appear when there is something useful to contribute."

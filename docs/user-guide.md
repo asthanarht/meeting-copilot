@@ -206,6 +206,11 @@ The overlay starts focused. **Show context** expands it; **Focus view** hides su
 details again. **Why this suggestion?** (or **Why this recommendation?**) explains the contribution in the expanded
 view. History remains available in either view. **Listening** means a session is active;
 the Speech tab provides detailed per-source audio status, not a guarantee of transcription.
+The current suggestion and each history entry carry a type tag: **Question**,
+**Improvement** (a recommendation), **Potential gap**, or **Alternative**. These labels
+use the model's existing classification, not a guess based on punctuation. Tags follow
+the displayed history item and disappear when there is no suggestion. Copy still copies
+only the suggestion text, not its tag.
 
 ## Voice-follow and offline teleprompter
 

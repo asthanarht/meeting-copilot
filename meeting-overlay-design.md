@@ -42,7 +42,7 @@ an active session; detailed per-source audio status appears in the Speech tab. I
 promise that every speaker has been recognized.
 
 **Implemented dimensions:** Focus view starts at 660 x 560 logical pixels; context expands
-to 860 high, subject to the work area. Minimum focused size is 520 x 500. Showing history
+to 860 high, subject to the work area. Minimum focused size is 520 x 560. Showing history
 increases the minimum height to preserve usable question space. Long questions scroll,
 not truncate. Controls wrap on narrower windows.
 
@@ -67,6 +67,12 @@ below the scrollable form. It defaults to the frequent task (preparing a meeting
 the infrequent task of editing credentials. Connection validation reveals Connections.
 The question remains above a separate, scrollable detail area. Speech, AI context and
 Display are mutually exclusive tabs, rather than a wall of diagnostic text.
+
+The current cue and history rows share explicit type tags: Question, Improvement
+(the model's recommendation kind), Potential gap and Alternative. Tags use text,
+not color alone, and remain readable in Windows high contrast. Empty cues have no
+tag. History tags describe their own entry, independently of the latest live cue.
+The 560-pixel minimum height reserves room for the tag, readable text and wrapped actions.
 
 Meeting AI preserves existing Foundry/legacy choices and adds OpenAI-compatible,
 Gemini, Claude and Grok connections. Each external provider owns a separate encrypted

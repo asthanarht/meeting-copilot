@@ -193,6 +193,17 @@ public partial class DesktopSmokeTests
                 Assert.Equal(WindowCaptureProtection.ExcludeFromCapture, WindowCaptureProtection.Read(handle));
                 Assert.Equal(Color.FromRgb(20, 27, 36), ((SolidColorBrush)overlay.Background).Color);
                 var cue = (TextBlock)overlay.FindName("CueText");
+                var typeTag = (Label)overlay.FindName("CueTypeTag");
+                Assert.Equal("Question", typeTag.Content);
+                Assert.True(typeTag.IsVisible);
+                Assert.Equal("Question", new LabelAutomationPeer(typeTag).GetName());
+                foreach (var (kind, label) in new[] { ("question", "Question"), ("recommendation", "Improvement"),
+                    ("gap", "Potential gap"), ("alternative", "Alternative") })
+                {
+                    var tag = new Label { Style = (Style)overlay.FindResource("SuggestionTypeTag"), Tag = kind };
+                    Assert.Equal(label, tag.Content);
+                    Assert.Equal(Visibility.Visible, tag.Visibility);
+                }
                 Assert.Equal(Visibility.Collapsed, ((ScrollViewer)overlay.FindName("Body")).Visibility);
                 Assert.True(cue.IsVisible);
                 var copy = (Button)overlay.FindName("CopyButton");
@@ -216,6 +227,10 @@ public partial class DesktopSmokeTests
                 AssertWithinWindow((Button)overlay.FindName("FindButton"), overlay);
                 AssertWithinWindow(copy, overlay);
                 AssertWithinWindow(cue, overlay);
+                AssertWithinWindow(typeTag, overlay);
+                Assert.Equal(560, overlay.ActualHeight);
+                var cueViewport = (ScrollViewer)overlay.FindName("CueScroll");
+                Assert.True(cueViewport.ViewportHeight >= typeTag.ActualHeight + cue.ActualHeight + 28);
                 SaveImage(overlay, "professional-focus-narrow.png");
                 overlay.Width = 660;
                 ((Button)overlay.FindName("CompactButton")).RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
@@ -252,6 +267,7 @@ public partial class DesktopSmokeTests
                 SaveImage(overlay, "overlay.png");
                 ((Button)overlay.FindName("DismissButton")).RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
                 Assert.Equal("Stay with the conversation.", cue.Text);
+                Assert.Equal(Visibility.Collapsed, typeTag.Visibility);
                 Assert.False(copy.IsEnabled);
                 Assert.Empty(copyStatus.Text);
                 copy.RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
@@ -280,6 +296,8 @@ public partial class DesktopSmokeTests
                 AssertWindowAppearance(main, highContrast: true);
                 Assert.Equal(SystemColors.WindowColor, ((SolidColorBrush)overlay.Background).Color);
                 Assert.Equal(SystemColors.HighlightTextColor, ((SolidColorBrush)app.Resources["AccentInk"]).Color);
+                Assert.Equal(SystemColors.HighlightTextColor, ((SolidColorBrush)typeTag.Foreground).Color);
+                Assert.Equal(SystemColors.HighlightColor, ((SolidColorBrush)typeTag.Background).Color);
                 app.ApplyContrastPalette(false);
                 overlay.UpdateLayout();
                 AssertWindowAppearance(overlay);
@@ -287,15 +305,31 @@ public partial class DesktopSmokeTests
                 Assert.Equal(Color.FromRgb(20, 27, 36), ((SolidColorBrush)overlay.Background).Color);
                 ((Button)overlay.FindName("FindButton")).RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
                 Assert.Contains("backoff", cue.Text);
+                Assert.Equal("Improvement", typeTag.Content);
                 Assert.Equal("Why this recommendation?", ((Expander)overlay.FindName("WhyPanel")).Header);
                 copy.RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
                 Assert.Equal(cue.Text, copied[^1]);
                 overlay.Height = 860;
                 overlay.UpdateLayout();
                 SaveImage(overlay, "recommendation-copy.png");
+                ((Button)overlay.FindName("BrowseQuestionsButton")).RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
+                overlay.UpdateLayout();
+                var historyList = (ListBox)overlay.FindName("QuestionHistoryList");
+                var historyTags = VisualLabels(historyList).Where(label => label.Name == "HistoryTypeTag").ToArray();
+                Assert.Contains(historyTags, label => Equals(label.Content, "Question"));
+                Assert.Contains(historyTags, label => Equals(label.Content, "Improvement"));
+                Assert.All(historyTags, label =>
+                {
+                    var entry = Assert.IsType<QuestionEntry>(label.DataContext);
+                    Assert.Equal(entry.Cue.Kind, label.Tag);
+                    Assert.True(label.IsVisible);
+                });
+                SaveImage(overlay, "suggestion-type-history.png");
+                ((Button)overlay.FindName("BrowseQuestionsButton")).RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
                 ((Button)overlay.FindName("PreviousQuestionButton")).RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
                 ((Button)overlay.FindName("PreviousQuestionButton")).RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
                 Assert.Contains("revoked permissions", cue.Text);
+                Assert.Equal("Question", typeTag.Content);
                 Assert.Empty(copyStatus.Text);
                 copy.RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
                 Assert.Equal(cue.Text, copied[^1]);
@@ -1347,6 +1381,16 @@ public partial class DesktopSmokeTests
             96, 96, PixelFormats.Pbgra32);
         bitmap.Render(window);
         SaveBitmap(bitmap, filename);
+    }
+
+    private static IEnumerable<Label> VisualLabels(DependencyObject root)
+    {
+        for (int i = 0; i < VisualTreeHelper.GetChildrenCount(root); i++)
+        {
+            var child = VisualTreeHelper.GetChild(root, i);
+            if (child is Label label) yield return label;
+            foreach (var descendant in VisualLabels(child)) yield return descendant;
+        }
     }
 
     private static void SaveBitmap(BitmapSource bitmap, string filename)
